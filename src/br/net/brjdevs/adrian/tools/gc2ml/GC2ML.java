@@ -1,15 +1,16 @@
 package br.net.brjdevs.adrian.tools.gc2ml;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 
 public class GC2ML {
 	public static File createMavenFolder() {
@@ -36,6 +37,7 @@ public class GC2ML {
 	public static Set<File> findGradleCaches() {
 		//return Set<File>(".gradle/caches/modules-*/files-*/");
 		return Stream.of(new File(".gradle/caches"))
+            .parallel()
 			.filter(File::exists)
 			.filter(File::isDirectory)
 			.map(f -> f.listFiles(folder -> folder.getName().startsWith("modules") && folder.isDirectory()))
@@ -88,12 +90,7 @@ public class GC2ML {
 								continue;
 							}
 
-							try (
-								FileInputStream input = new FileInputStream(cachedFileOfVersion);
-								FileOutputStream output = new FileOutputStream(mavenFileOfVersion)
-							) {
-								for (int c = input.read(); c != -1; c = input.read()) output.write(c);
-							}
+                            Files.copy(cachedFileOfVersion.toPath(), mavenFileOfVersion.toPath(), COPY_ATTRIBUTES);
 
 							System.out.println(" (CREATED)");
 						}
